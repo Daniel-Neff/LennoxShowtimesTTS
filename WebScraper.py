@@ -1,24 +1,29 @@
 import requests
 import calendar
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 from datetime import date
 
 URL = "https://tickets.phoenixtheatres.com/browsing/Cinemas/Details/3503"
-
-fullDate = date.today().strftime("%B %d %Y")
-fullDateSplit = fullDate.split()
-weekday = calendar.day_name[date.today().weekday()]
-formattedDate = weekday + ", " + fullDateSplit[1] + " " + fullDateSplit[0] + " " + fullDateSplit[2]
-print(formattedDate)
+date = date.today().strftime("%A, %d %B %Y")
 
 page = requests.get(URL)
 
 soup = BeautifulSoup(page.content, "html.parser")
 
-movies = soup.find_all("div", attrs={"class":"film-showtimes"})
-
-for movie in movies:
+moviesoup = soup.find_all("div", attrs={"class":"film-showtimes"})
+moviesAndTimes = {}
+for movie in moviesoup:
     filmTitle = movie.find("h3", attrs={"class":"film-title"})
-    sessionDates = movie.find_all("h4", attrs={"class":"session-date"})
-    #for session in sessionDates:
-        #if session.text
+    sessionDateSoup = movie.find_all("h4", attrs={"class":"session-date"})
+    for session in sessionDateSoup:
+        if session.text == date:
+            sessionTimeSoup = session.next_sibling
+            while (isinstance(sessionTimeSoup, NavigableString)):
+                sessionTimeSoup = sessionTimeSoup.next_sibling
+            timeSoup = sessionTimeSoup.find_all("time")
+            timeList = []
+            for time in timeSoup:
+                timeList.append(time.text)
+            moviesAndTimes.update({filmTitle.text: timeList})
+
+print(moviesAndTimes)
