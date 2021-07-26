@@ -1,6 +1,7 @@
 import requests
 import calendar
 from bs4 import BeautifulSoup, NavigableString
+from gtts import gTTS
 from datetime import date
 
 URL = "https://tickets.phoenixtheatres.com/browsing/Cinemas/Details/3503"
@@ -26,4 +27,7 @@ for movie in moviesoup:
                 timeList.append(time.text)
             moviesAndTimes.update({filmTitle.text: timeList})
 
-print(moviesAndTimes)
+dictString = str(moviesAndTimes)
+strResult = str('Lennox movie times for today, ' + date + ' are ' + dictString)
+tts = gTTS(strResult, tld='ca', lang='en', slow ='true')
+tts.save(date + '.mp3')
